@@ -2,14 +2,14 @@ package data;
 
 import java.util.ArrayList;
 
-public class Server {
+public class ServerSender {
 	
 	private String serverName;
 	private ArrayList<Item> items;
 	private ArrayList<Character> characters;
 	
 	//Constructor
-	public Server(String name) {
+	public ServerSender(String name) {
 		this.serverName = name;
 		items = new ArrayList<Item>();
 		characters = new ArrayList<Character>();

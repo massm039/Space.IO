@@ -9,12 +9,12 @@ import org.newdawn.slick.opengl.Texture;
 
 public class Game {
 	
-	private Server server;
+	private ServerSender server;
 	private Player player;
 	private Texture background;
 	
 	//Constructor
-	public Game(Server server) {
+	public Game(ServerSender server) {
 		this.background = LoadPNG("background");
 		this.server = server;
 		player = new Player(server);

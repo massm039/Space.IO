@@ -20,7 +20,6 @@ public class Sprite {
 	}
 	
 	//sets the current animation (attacking, moving, idle)
-	//TODO: implement non-idle animations
 	public void setAnimation(String animation, int animTimer) {
 		anim = animation;
 		this.animTimer = animTimer;

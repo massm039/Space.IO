@@ -1,6 +1,6 @@
 package helpers;
 
-import data.Server;
+import data.ServerSender;
 import data.MainMenu;
 import data.Game;
 
@@ -25,7 +25,7 @@ public class StateManager {
 			break;
 		case GAME:
 			if (game == null) {
-				Server server = connectServer();
+				ServerSender server = connectServer();
 				mainMenu = null;
 				game = new Game(server);
 			}
@@ -42,8 +42,8 @@ public class StateManager {
 	}
 	
 	//Generates an object that represents the server, allowing inter-process communication
-	private static Server connectServer() { //TODO: Implement server connection
-		return new Server("MainServer");
+	private static ServerSender connectServer() { //TODO: Implement server connection
+		return new ServerSender("MainServer");
 	}
 	
 }

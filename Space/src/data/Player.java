@@ -5,12 +5,12 @@ import org.lwjgl.input.Mouse;
 
 public class Player {
 	
-	private Server server;
+	private ServerSender server;
 	private Character ship;
 	private ArrayList<InventoryItem> inventory;
 	
 	//Constructor
-	Player(Server server) {
+	Player(ServerSender server) {
 		this.server = server;
 		inventory = new ArrayList<InventoryItem>();
 		this.ship = new Character();
@@ -28,10 +28,6 @@ public class Player {
 		if (Mouse.isButtonDown(0)) { //left click held -> shoot
 			activateItems(); //makes bullets based on the weapons in the character's inventory
 		}
-		while(Mouse.next())
-			if (Mouse.getEventButtonState() && Mouse.getEventButton() == 1) { //right click -> toggle engine
-				ship.toggleEngine();
-			}
 		
 		//update the ships location
 		ship.update();
@@ -62,7 +58,7 @@ public class Player {
 	//Call when the current ship dies, respawning as a new character
 	public void respawn() {
 		//TODO: implement some random location algorithm based on the server size
-		ship = new Character(0, 0, 32, 32, 100, 10, "MyShip", 1, server);
+		ship = new Character(0, 0, 32, 32, 100, .5, 10, "ship", "turret", 1, server);
 	}
 	
 	//gives the updated Character to the server to draw

@@ -7,7 +7,7 @@ public enum ItemType {
 	//Pickup has 5 frames, and a rotation time of 3 units
 	Pickup("Pickup", 32, 32, "pickup", 0, 5, 3),
 	//Other enumerated types
-	Bullet("Bullet", 8, 3, "bullet", 15);
+	Bullet("Bullet", 24, 9, "bullet", 15);
 	
 	int width, height, speed, animLength = 1, frameTime = 1;
 	String name, tex;

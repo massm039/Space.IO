@@ -20,13 +20,13 @@ public enum InventoryItem {
 	}
 	
 	//Activates the current Inventory Item
-	public void activate(Character ship, Server server) {
+	public void activate(Character ship, ServerSender toServer) {
 		cooldown += Delta();
 		if (cooldown > timePerFire) {
 			cooldown = cooldown - timePerFire;
 			//TODO: launch a projectile
-			Item item = new Item((int)ship.getX(), (int)ship.getY(), ship.getDirection(), 15, projectile);
-			server.addItem(item);
+			Item item = new Item((int)ship.getX(), (int)ship.getY(), ship.getTurretDirection(), 15+(int)ship.getSpeed(), projectile);
+			toServer.addItem(item);
 		}
 	}
 
