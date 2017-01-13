@@ -13,6 +13,9 @@ public class SpriteAnim {
 	public SpriteAnim(String data) {
 		//return frameName + "_" + animLength + "_" + frameTime + "_" + frameIndex;
 		String[] datapoints = data.split("_");
+		if (datapoints.length != 4) {
+			System.out.println("Error in String input for SpriteAnim(String data) :: " + data);
+		}
 		frameName = datapoints[0];
 		animLength = Integer.parseInt(datapoints[1]);
 		frameTime = Integer.parseInt(datapoints[2]);

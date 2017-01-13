@@ -25,10 +25,10 @@ public class ServerThread extends Thread {
 			BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream())); //input reader
 			PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream())); //output writer
 			
-			System.out.println("Connection Established");
+			//System.out.println("Connection Established");
 			
 			out.println("hello client, welcome to the server");
-			out.flush();
+			//out.flush();
 			
 			while ((message = bufferedReader.readLine()) != null) {
 				handleData(message);
@@ -40,8 +40,7 @@ public class ServerThread extends Thread {
 	
 	//sends the data to the master class to be handled
 	private synchronized void handleData(String data) {
-		System.out.println("Handling Data");
-		String[] datapoints = data.split(" ");
+		//System.out.println("Handling Data");
 		master.handleInput(data, this);
 	}
 	

@@ -8,7 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-public class Client extends Thread {
+public class Client extends Thread{
 	
 	private ArrayList<Item> items;
 	private ArrayList<Character> characters;
@@ -35,58 +35,69 @@ public class Client extends Thread {
 			//System.out.println("Port is in use, try another port.");
 			e.printStackTrace();
 		}
-		
+		ClientReceiver clientReceiver = new ClientReceiver(br, this);
+		clientReceiver.start();
 	}
 	
+	//Handles data transactions with the server. Both sending and receiving
 	public void run() {
 		while (true) {
-			String data;
 			try {
-				//read from server
-				data = br.readLine();
-				handleData(data);
-				System.out.println(data);
 				//send to server
-				synchronized (this) {
-					for (Character i : characters) {
-						if (i != null)
-							sendData(i);
-					}
+				synchronized (characters) {
+					sendData(player.getCharacter());
+				}
+				synchronized (items) {
 					for (Item i : items) {
-						if (i != null)
+						if (i.getOwnerID() == player.getCharacter().getID()) {
 							sendData(i);
+						}
 					}
 				}
-			} catch (IOException e) {
+				Thread.sleep(100);
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 	}
 	
-	//handles new data coming in from the server, run this in another thread? TODO
-	private void  handleData(String data) {
-		System.out.println(data);
+	//handles new data coming in from the server
+	//Thread Safe
+	public synchronized void  handleData(String data) {
+		//System.out.println(data);
 		String[] datapoints = data.split(" ");
 		if (datapoints[0].equals("ship")) {
 			Character dataChar = new Character(data, player, this);
-			for (Character i : characters) {
-				if (i.getID() == dataChar.getID()) {
-					i = dataChar;
+			synchronized (characters) {
+				Character toBeRemoved = null;
+				for (Character i : characters) {
+					//System.out.println("CHARACTER: makes it to the for loop");
+					if (i.getID() == dataChar.getID()) {
+						//System.out.println("matches IDs");
+						toBeRemoved = i;
+					}
 				}
-				else {
-					characters.add(dataChar);
+				if (toBeRemoved != null) {
+					characters.remove(toBeRemoved);
 				}
+				characters.add(dataChar);
 			}
 		}
 		else if (datapoints[0].equals("item")) {
 			Item dataItem =  new Item(data);
-			for (Item i : items) {
-				if (i.getName().equals(dataItem.getName())) {
-					i = dataItem;
+			synchronized (items) {
+				//System.out.println("ITEM: makes it to the for loop");
+				Item toBeRemoved = null;
+				for (Item i : items) {
+					if (i.getID() == dataItem.getID()) {
+						//System.out.println("matches IDs");
+						toBeRemoved = i;
+					}
 				}
-				else {
-					items.add(dataItem);
+				if (toBeRemoved != null) {
+					items.remove(toBeRemoved);
 				}
+				items.add(dataItem);
 			}
 		}
 	}
@@ -103,30 +114,38 @@ public class Client extends Thread {
 	
 	//Draw Functions
 	public void drawHealthBars(){
-		for (Character i : characters) {
-			if (i.isVisible()) {
-				i.drawHealthBar();
+		synchronized (characters) {
+			for (Character i : characters) {
+				if (i.isVisible()) {
+					i.drawHealthBar();
+				}
 			}
 		}
 	}
 	
 	//Adds a player's ship to the list of ships in the game
-	public void addPlayer(Character ship) {
-		characters.add(ship);
+	public void addCharacter(Character ship) {
+		synchronized (characters) {
+			characters.add(ship);
+		}
 	}
 	
 	//Adds an item to the list of items in the game
 	public void addItem(Item item) {
-		items.add(item);
+		synchronized (items) {
+			items.add(item);
+		}
 	}
 	
 	//Updates the given ship's location and statistics
 	public void updateShip(Character ship) {
-		for (Character i : characters) {
-			if (i.getID() == ship.getID()) {
-				characters.remove(i);
-				characters.add(ship);
-				break;
+		synchronized(characters) {
+			for (Character i : characters) {
+				if (i.getID() == ship.getID()) {
+					characters.remove(i);
+					characters.add(ship);
+					break;
+				}
 			}
 		}
 	}

@@ -25,7 +25,7 @@ public enum InventoryItem {
 		if (cooldown > timePerFire) {
 			cooldown = cooldown - timePerFire;
 			//TODO: launch a projectile
-			Item item = new Item((int)ship.getX(), (int)ship.getY(), ship.getTurretDirection(), 15+(int)ship.getSpeed(), projectile);
+			Item item = new Item((int)ship.getX(), (int)ship.getY(), ship.getTurretDirection(), 15+(int)ship.getSpeed(), projectile, ship.getID());
 			toServer.addItem(item);
 		}
 	}

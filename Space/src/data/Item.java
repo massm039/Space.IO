@@ -6,11 +6,12 @@ import static helpers.Artist.*;
 
 public class Item {
 	
-	protected int x, y, width, height, speed, angle=0;
-	protected double XSpeed, YSpeed, lifetime=-100;
+	protected int x, y, width, height, speed, angle;
+	protected double XSpeed, YSpeed, lifetime;
 	protected SpriteAnim spriteAnim;
 	protected String stringAnim;
 	protected String name;
+	protected int ID, ownerID;
 	protected boolean passable = false, visible;
 	
 	//makes an Item without an animated sprite (the texture has a single frame)
@@ -20,6 +21,9 @@ public class Item {
 		this.width = width;
 		this.height = height;
 		this.spriteAnim = new SpriteAnim(imageFile, 1);
+		lifetime = -15.0;
+		angle = 0;
+		ID = (int)(Math.random()*10000);
 	}
 	
 	//makes an Item with a specified animation length
@@ -29,6 +33,9 @@ public class Item {
 		this.width = width;
 		this.height = height;
 		this.spriteAnim = new SpriteAnim(imageFile, animLength);
+		lifetime = -15.0;
+		angle = 0;
+		ID = (int)(Math.random()*10000);
 	}
 	
 	//specifies the time per frame on the animated Item
@@ -39,28 +46,33 @@ public class Item {
 		this.height = height;
 		this.speed = speed;
 		this.spriteAnim = new SpriteAnim(imageFile, animLength, frameTime);
+		lifetime = -15.0;
+		angle = 0;
+		ID = (int)(Math.random()*10000);
 	}
 	
 	//makes an Item based on an ItemType
-	public Item(int x, int y, double direction, int lifespan, ItemType type) {
+	public Item(int x, int y, double direction, int lifespan, ItemType type, int ownerID) {
 		this.x = x;
 		this.y = y;
 		this.width = type.width;
 		this.height = type.height;
-		this.angle = (int)direction;
+		angle = (int)direction;
 		this.XSpeed = Math.cos(Math.toRadians(direction));
 		this.YSpeed = Math.sin(Math.toRadians(direction));
 		this.lifetime = lifespan;
 		this.speed = type.speed;
 		this.spriteAnim = new SpriteAnim(type.tex, type.animLength, type.frameTime);
 		this.name = type.name;
+		lifetime = -15.0;
+		ID = (int)(Math.random()*10000);
+		this.ownerID = ownerID;
 	}
 	
 	public Item(String data) {
-		//"item " + Integer.toString(x) + " " + Integer.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height) + Integer.toString(speed) + " " + Integer.toString(angle) + " " + Double.toString(XSpeed) + " " + Double.toString(YSpeed) + " " + Double.toString(lifetime) + " " + spriteAnim.toString() + " " + passable + " " + name;
 		String[] datapoints = data.split(" ");
-		if (datapoints.length != 13) {
-			System.out.println("Input error in Item(String data)");
+		if (datapoints.length != 14) {
+			System.out.println("Input error in Item(String data) :: " + data);
 		}
 		else {
 			//datapoints[0] is "item"
@@ -77,27 +89,32 @@ public class Item {
 			//spriteAnim = new SpriteAnim(datapoints[10]);
 			passable = Boolean.parseBoolean(datapoints[11]);
 			name = datapoints[12];
+			ID = Integer.parseInt(datapoints[13]);
 		}
 	}
 	
 	//returns the item's name
-	public String getName() {
+	/*public String getName() {
 		return name;
+	}*/
+	
+	public int getID() {
+		return ID;
+	}
+	
+	public int getOwnerID() {
+		return ownerID;
 	}
 	
 	//move items in their given direction, destroy on the end of lifespan, if given a lifespan;
 	public boolean update() {
 		x += XSpeed*speed*Delta();
 		y += YSpeed*speed*Delta();
-		//
-		if (lifetime == -100) {
+		lifetime += Delta();
+		if (lifetime <= 0) {
 			return true;
 		}
-		lifetime -= Delta();
-		if (lifetime <= 0) {
-			return false;
-		}
-		return true;
+		return false;
 	}
 	
 	//draws the item on the map
@@ -122,10 +139,24 @@ public class Item {
 	
 	//returns a string representation of the object
 	public String toString() {
+		/*
+		System.out.println("X = " + x);
+		System.out.println("Y = " + y);
+		System.out.println("width = " + width);
+		System.out.println("height = " + height);
+		System.out.println("Lifetime = " + lifetime);
+		System.out.println("Angle = " + angle);
+		System.out.println("Speed = " + speed);
+		System.out.println("Xspd = " + XSpeed);
+		System.out.println("Yspd = " + YSpeed);
+		*/
+		String reVal;
 		if (spriteAnim == null) {
-			return "item " + Integer.toString(x) + " " + Integer.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height) + Integer.toString(speed) + " " + Integer.toString(angle) + " " + Double.toString(XSpeed) + " " + Double.toString(YSpeed) + " " + Double.toString(lifetime) + " " + stringAnim + " " + passable + " " + name;
+			reVal = "item " + x + " " + y + " " + width + " " + height + " " + speed + " " + Integer.toString(angle) + " " + Double.toString(XSpeed) + " " + Double.toString(YSpeed) + " " + lifetime + " " + stringAnim + " " + passable + " " + name + " " + Integer.toString(ID);
 		}
-		return "item " + Integer.toString(x) + " " + Integer.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height) + Integer.toString(speed) + " " + Integer.toString(angle) + " " + Double.toString(XSpeed) + " " + Double.toString(YSpeed) + " " + Double.toString(lifetime) + " " + spriteAnim.toString() + " " + passable + " " + name;
+		reVal = "item " + Integer.toString(x) + " " + Integer.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height) + " " + Integer.toString(speed) + " " + Integer.toString(angle) + " " + Double.toString(XSpeed) + " " + Double.toString(YSpeed) + " " + lifetime + " " + spriteAnim.toString() + " " + passable + " " + name + " " + Integer.toString(ID);
+		//System.out.println(reVal);
+		return reVal;
 	}
 
 }

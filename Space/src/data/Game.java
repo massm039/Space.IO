@@ -18,7 +18,7 @@ public class Game {
 		this.background = LoadPNG("background");
 		this.client = client;
 		player = new Player(client);
-		client.addPlayer(player.getCharacter());
+		client.addCharacter(player.getCharacter());
 		client.start();
 	}
 	
@@ -33,19 +33,27 @@ public class Game {
 		
 		//Draws all of the client's Items
 		ArrayList<Item> items = client.getItems();
-		for (int i=0; i<items.size(); i++) {
-			if (items.get(i).update()) {
-				items.get(i).Draw();
-			}
-			else {
-				items.remove(i);
-				i--;
+		synchronized (items) {
+			for (int i=0; i<items.size(); i++) {
+				if (items.get(i).update()) {
+					items.get(i).Draw();
+				}
+				else {
+					items.remove(i);
+					i--;
+				}
 			}
 		}
 		
 		//Draws all of the client's Characters
-		for (Character i : client.getCharacters()) {
-			i.Draw();
+		ArrayList<Character> characters = client.getCharacters();
+		synchronized (characters) {
+			for (Character i : characters) {
+				if (i != player.getCharacter()) {
+					i.move();
+				}
+				i.Draw();
+			}
 		}
 	
 	}

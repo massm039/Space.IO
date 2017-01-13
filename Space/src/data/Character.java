@@ -78,7 +78,7 @@ public class Character {
 			turretAngle = Double.parseDouble(datapoints[8]);
 			health = Integer.parseInt(datapoints[9]);
 			shipString = datapoints[10];
-			System.out.println(datapoints[10] + " :: " + shipString);
+			//System.out.println(datapoints[10] + " :: " + shipString);
 			//shipSprite = new Sprite(datapoints[10]);
 			turretString = datapoints[11];
 			//turretSprite = new Sprite(datapoints[11]);
@@ -98,8 +98,11 @@ public class Character {
 		updateTurretDirection();
 		updateSpeed();
 		
+		move();
+	}
+	
+	public void move() {
 		double dt = Delta();
-		
 		x += xSpeed*dt;
 		y += ySpeed*dt;
 	}
@@ -272,11 +275,9 @@ public class Character {
 	
 	//Draws the sprite to the screen based on its current frame
 	//Graphic operations are allowed
+	//Thread Safe
 	public void Draw() {
-		if (shipSprite == null || turretSprite == null) {
-			shipSprite = new Sprite(shipString);
-			turretSprite = new Sprite(turretString);
-		}
+		makeThreadSafe();
 		if (visible) {
 			updateSprite();
 		}
@@ -308,7 +309,7 @@ public class Character {
 	}
 	
 	//Set Character name
-	public void setID(String name) {
+	public void setID(int id) {
 		this.id = id;
 	}
 	
@@ -376,9 +377,21 @@ public class Character {
 	
 	//changes the texture of the sprite based on the current frame
 	//graphic operations are allowed
+	//thread safe
 	protected void updateSprite() {
+		makeThreadSafe();
 		DrawQuadTexRot((int)x, (int)y, width, height, (int)shipAngle, shipSprite.updateTex());
 		DrawQuadTexRot((int)x+width/4, (int)y+height/4, width/2, height/2, (int)turretAngle, turretSprite.updateTex());
+	}
+	
+	//checks if sprites have been initialized (required before using any sprite functions)
+	private void makeThreadSafe() {
+		if (shipSprite == null) {
+			shipSprite = new Sprite(shipString);
+		}
+		if (turretSprite == null) {
+			turretSprite = new Sprite(turretString);
+		}
 	}
 		
 }

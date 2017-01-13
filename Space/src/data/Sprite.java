@@ -20,11 +20,12 @@ public class Sprite {
 	}
 	
 	public Sprite(String data) {
-		String[] datapoints = data.split("-");
+		String[] datapoints = data.split("@");
 		if (datapoints.length != 3) {
-			for (String i : datapoints)
+			for (String i : datapoints) {
 				System.out.println(i);
-			System.out.println("Error with String format in Sprite(String data)");
+			}
+			System.out.println("Error with String format in Sprite(String data) :: " + data);
 		}
 		else {
 			animTimer = Integer.parseInt(datapoints[0]);
@@ -34,7 +35,7 @@ public class Sprite {
 	}
 	
 	public String toString() {
-		return animTimer + "-" + anim + "-" + animation.toString();
+		return animTimer + "@" + anim + "@" + animation.toString();
 	}
 	
 	//sets the current animation (attacking, moving, idle)
