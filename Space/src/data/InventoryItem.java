@@ -20,7 +20,7 @@ public enum InventoryItem {
 	}
 	
 	//Activates the current Inventory Item
-	public void activate(Character ship, ServerSender toServer) {
+	public void activate(Character ship, Client toServer) {
 		cooldown += Delta();
 		if (cooldown > timePerFire) {
 			cooldown = cooldown - timePerFire;

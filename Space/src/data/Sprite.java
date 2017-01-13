@@ -8,7 +8,7 @@ import org.newdawn.slick.opengl.Texture;
 public class Sprite {
 	
 	private int animTimer = 0;
-	private String anim = "";
+	private String anim = "none";
 	private SpriteAnim animation;
 	private Texture idle;
 	private Texture preFrame = idle;
@@ -17,6 +17,24 @@ public class Sprite {
 	public Sprite(String spriteName, int animLength) {
 		this.idle = LoadPNG(spriteName);
 		this.animation = new SpriteAnim(spriteName, animLength);
+	}
+	
+	public Sprite(String data) {
+		String[] datapoints = data.split("-");
+		if (datapoints.length != 3) {
+			for (String i : datapoints)
+				System.out.println(i);
+			System.out.println("Error with String format in Sprite(String data)");
+		}
+		else {
+			animTimer = Integer.parseInt(datapoints[0]);
+			anim = datapoints[1];
+			animation = new SpriteAnim(datapoints[2]);
+		}
+	}
+	
+	public String toString() {
+		return animTimer + "-" + anim + "-" + animation.toString();
 	}
 	
 	//sets the current animation (attacking, moving, idle)
@@ -40,11 +58,11 @@ public class Sprite {
 	public Texture updateTex() {
 		Texture reTex;
 		if (animTimer == 0) {
-			anim = "";
+			anim = "none";
 		}
 		float delta = Delta();
 		switch(anim) {
-		case "":
+		case "none":
 			reTex = animation.getFrame(delta);
 			break;
 		case "attack":

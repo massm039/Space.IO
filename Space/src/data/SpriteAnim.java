@@ -10,25 +10,38 @@ public class SpriteAnim {
 	private int animLength, frameTime;
 	private float frameIndex = 0;
 	
+	public SpriteAnim(String data) {
+		//return frameName + "_" + animLength + "_" + frameTime + "_" + frameIndex;
+		String[] datapoints = data.split("_");
+		frameName = datapoints[0];
+		animLength = Integer.parseInt(datapoints[1]);
+		frameTime = Integer.parseInt(datapoints[2]);
+		frameIndex = Float.parseFloat(datapoints[3]);
+		setupFrames();
+	}
+	
+	public SpriteAnim(String frameName, int animLength, int time, float frameIndex) {
+		this.animLength = animLength;
+		this.frameName = frameName;
+		this.frameTime = time;
+		setupFrames();
+	}
+	
 	public SpriteAnim(String frameName, int animLength, int time) {
 		this.animLength = animLength;
 		this.frameName = frameName;
 		this.frameTime = time;
-		frames = new Texture[animLength];
-		for (int i=0; i<frames.length; i++) {
-			if (i == 0) {
-				frames[i] = LoadPNG(frameName);
-			}
-			else {
-				frames[i] = LoadPNG(frameName+Integer.toString(i));
-			}
-		}
+		setupFrames();
 	}
 	
 	public SpriteAnim(String frameName, int animLength) {
 		this.animLength = animLength;
 		this.frameName = frameName;
 		this.frameTime = 1;
+		setupFrames();
+	}
+	
+	private void setupFrames() {
 		frames = new Texture[animLength];
 		for (int i=0; i<frames.length; i++) {
 			if (i == 0) {
@@ -66,7 +79,7 @@ public class SpriteAnim {
 	}
 	
 	public String toString() {
-		return frameName + " " + animLength + " " + frameTime;
+		return frameName + "_" + animLength + "_" + frameTime + "_" + frameIndex;
 	}
 	
 }

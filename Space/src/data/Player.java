@@ -5,13 +5,14 @@ import org.lwjgl.input.Mouse;
 
 public class Player {
 	
-	private ServerSender server;
+	private Client client;
 	private Character ship;
 	private ArrayList<InventoryItem> inventory;
 	
 	//Constructor
-	Player(ServerSender server) {
-		this.server = server;
+	Player(Client client) {
+		this.client = client;
+		client.setPlayer(this);
 		inventory = new ArrayList<InventoryItem>();
 		this.ship = new Character();
 		addItem(InventoryItem.gunBlaster);
@@ -33,7 +34,7 @@ public class Player {
 		ship.update();
 		
 		//send new data about the ship to the server
-		updateServer(ship);
+		updateClient(ship);
 	}
 	
 	//Adds an item to the player's inventory, modifying the ship
@@ -46,7 +47,7 @@ public class Player {
 	//Uses all of the ship's weapons and other pickups
 	public void activateItems() {
 		for (InventoryItem i : inventory) {
-			i.activate(ship, server);
+			i.activate(ship, client);
 		}
 	}
 	
@@ -57,14 +58,13 @@ public class Player {
 	
 	//Call when the current ship dies, respawning as a new character
 	public void respawn() {
-		//TODO: implement some random location algorithm based on the server size
-		ship = new Character(0, 0, 32, 32, 100, .5, 10, "ship", "turret", 1, server);
+		//TODO: implement a random location algorithm based on the server size
+		ship = new Character(0, 0, 32, 32, 100, .5, 10, "ship", "turret", 1, this, client);
 	}
 	
 	//gives the updated Character to the server to draw
-	private void updateServer(Character ship) {
-		//TODO: implement server
-		server.updateShip(ship);
+	private void updateClient(Character ship) {
+		client.updateShip(ship);
 	}
 
 }

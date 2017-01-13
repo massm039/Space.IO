@@ -9,6 +9,7 @@ public class Item {
 	protected int x, y, width, height, speed, angle=0;
 	protected double XSpeed, YSpeed, lifetime=-100;
 	protected SpriteAnim spriteAnim;
+	protected String stringAnim;
 	protected String name;
 	protected boolean passable = false, visible;
 	
@@ -55,6 +56,30 @@ public class Item {
 		this.name = type.name;
 	}
 	
+	public Item(String data) {
+		//"item " + Integer.toString(x) + " " + Integer.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height) + Integer.toString(speed) + " " + Integer.toString(angle) + " " + Double.toString(XSpeed) + " " + Double.toString(YSpeed) + " " + Double.toString(lifetime) + " " + spriteAnim.toString() + " " + passable + " " + name;
+		String[] datapoints = data.split(" ");
+		if (datapoints.length != 13) {
+			System.out.println("Input error in Item(String data)");
+		}
+		else {
+			//datapoints[0] is "item"
+			x = Integer.parseInt(datapoints[1]);
+			y = Integer.parseInt(datapoints[2]);
+			width = Integer.parseInt(datapoints[3]);
+			height = Integer.parseInt(datapoints[4]);
+			speed = Integer.parseInt(datapoints[5]);
+			angle = (int)Double.parseDouble(datapoints[6]);
+			XSpeed = Double.parseDouble(datapoints[7]);
+			YSpeed = Double.parseDouble(datapoints[8]);
+			lifetime = Double.parseDouble(datapoints[9]);
+			stringAnim = datapoints[10];
+			//spriteAnim = new SpriteAnim(datapoints[10]);
+			passable = Boolean.parseBoolean(datapoints[11]);
+			name = datapoints[12];
+		}
+	}
+	
 	//returns the item's name
 	public String getName() {
 		return name;
@@ -76,7 +101,12 @@ public class Item {
 	}
 	
 	//draws the item on the map
+	//graphic operations are allowed
+	//not thread safe
 	public void Draw() {
+		if (spriteAnim == null) {
+			spriteAnim = new SpriteAnim(stringAnim);
+		}
 		DrawQuadTexRot(x, y, width, height, angle, spriteAnim.getFrame(Delta()));
 	}
 	
@@ -92,7 +122,10 @@ public class Item {
 	
 	//returns a string representation of the object
 	public String toString() {
-		return "Item " + Integer.toString(x) + " " + Integer.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height) + " " + spriteAnim.toString() + " " + name;
+		if (spriteAnim == null) {
+			return "item " + Integer.toString(x) + " " + Integer.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height) + Integer.toString(speed) + " " + Integer.toString(angle) + " " + Double.toString(XSpeed) + " " + Double.toString(YSpeed) + " " + Double.toString(lifetime) + " " + stringAnim + " " + passable + " " + name;
+		}
+		return "item " + Integer.toString(x) + " " + Integer.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height) + Integer.toString(speed) + " " + Integer.toString(angle) + " " + Double.toString(XSpeed) + " " + Double.toString(YSpeed) + " " + Double.toString(lifetime) + " " + spriteAnim.toString() + " " + passable + " " + name;
 	}
 
 }

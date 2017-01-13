@@ -10,11 +10,11 @@ import static helpers.Clock.*;
 public class Character {
 	protected double x, y;
 	protected int width, height, maxHealth, maxMovement, damage = 10, range;
-	protected Sprite turretSprite;
-	protected Sprite shipSprite;
+	protected Sprite turretSprite, shipSprite;
+	protected String turretString, shipString;
 	protected Player player;
-	protected ServerSender server;
-	protected String name = "Character";
+	protected Client client;
+	protected int id;
 	protected boolean visible = true;
 	
 	protected String animation = "";
@@ -26,6 +26,7 @@ public class Character {
 	private double turretAngle;
 	
 	//Default character constructor for a new ship
+	//TODO: update this, it would be very nice to have a decent default.
 	public Character() {
 		x = 100;
 		y = 100;
@@ -39,10 +40,11 @@ public class Character {
 		maxMovement = 20;
 		this.turretSprite = new Sprite("turret", 1);
 		this.shipSprite = new Sprite("ship", 1);
+		id = (int)(Math.random()*10000);
 	}
 	
-	//Constructor for a character (ship) with given details
-	public Character(double x, double y, int width, int height, int maxHealth, double accel, int maxMovement, String shipSprite, String turretSprite, int animLength, ServerSender server) {
+	//Character constructor for a new ship
+	public Character(double x, double y, int width, int height, int maxHealth, double accel, int maxMovement, String shipSprite, String turretSprite, int animLength, Player player, Client client) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
@@ -51,15 +53,48 @@ public class Character {
 		this.health = maxHealth;
 		this.accel = accel;
 		this.maxMovement = maxMovement;
+		this.animTimer = animLength;
 		this.shipSprite = new Sprite(shipSprite, animLength);
 		this.turretSprite = new Sprite(turretSprite, animLength);
 		xSpeed = 0;
 		ySpeed = 0;
+		id = (int)(Math.random()*10000);
+	}
+	
+	//takes a Character.toString() and constructs an identical Character in the new client.
+	public Character(String data, Player player, Client client) {
+		String[] datapoints = data.split(" ");
+		if (datapoints.length != 15) {
+			System.out.println( "Provided String is not of desired structure in Character(String data)");
+		}
+		else {
+			x = Double.parseDouble(datapoints[1]);
+			y = Double.parseDouble(datapoints[2]);
+			width = Integer.parseInt(datapoints[3]);
+			height = Integer.parseInt(datapoints[4]);
+			maxHealth = Integer.parseInt(datapoints[5]);
+			maxMovement = Integer.parseInt(datapoints[6]);
+			shipAngle = Double.parseDouble(datapoints[7]);
+			turretAngle = Double.parseDouble(datapoints[8]);
+			health = Integer.parseInt(datapoints[9]);
+			shipString = datapoints[10];
+			System.out.println(datapoints[10] + " :: " + shipString);
+			//shipSprite = new Sprite(datapoints[10]);
+			turretString = datapoints[11];
+			//turretSprite = new Sprite(datapoints[11]);
+			animation = datapoints[12];
+			animTimer = Integer.parseInt(datapoints[13]);
+			id = Integer.parseInt(datapoints[14]);
+			this.player = player;
+			this.client = client;
+		}
+		
 	}
 
 	//Called on every iteration of the player's program on the player's ship.
 	//Updates the sprite and location of the character
 	public void update() {
+		
 		updateTurretDirection();
 		updateSpeed();
 		
@@ -75,14 +110,19 @@ public class Character {
 		double yDist = Mouse.getY() - (HEIGHT - ((int)y+(height/2)));
 		
 		//set the image angle to be looking at the cursor
-		turretAngle = (-90) + Math.toDegrees(Math.atan((yDist/xDist*(-1))));
-		if (xDist < 0) {
+		turretAngle = (90) + Math.toDegrees(Math.atan((yDist/xDist*(-1))));
+		if (xDist >= 0) {
 			turretAngle += 180;
 		}
 	}
 	
+	//set ship to face away from its velocity when it is breaking
 	private void updateShipDirection(double xAccel, double yAccel) {
-		shipAngle = Math.cos(xAccel/(Math.pow(xAccel*xAccel+yAccel*yAccel, .5)));
+		//System.out.println( Math.toDegrees(Math.atan((yAccel/xAccel))));
+		shipAngle = (90) + Math.toDegrees(Math.atan((yAccel/xAccel)));
+		if (xAccel >= 0) {
+			shipAngle += 180;
+		}
 	}
 	
 	private void updateSpeed() {
@@ -90,53 +130,55 @@ public class Character {
 		double tempX = xSpeed;
 		double tempY = ySpeed;
 		double dt = Delta();
-		
-		double partialAccel = (accel*accel)/2;
-		partialAccel = (double)Math.pow((accel*accel)/2, .5);
+		double xPercent = Math.abs(xSpeed)/Math.abs(xSpeed)+Math.abs(ySpeed);
+		double yPercent = Math.abs(ySpeed)/Math.abs(xSpeed)+Math.abs(ySpeed);
+		double partialAccel = Math.pow(accel*accel/2, .5);
+		double partialAccelX = Math.pow(accel*accel/xPercent, .5);
+		double partialAccelY = Math.pow(accel*accel/yPercent, .5);
 
 		
 		//SPACEBAR to stop
 		if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
 			if (xSpeed > 0) {
-				xSpeed -= partialAccel*dt;
+				xSpeed -= partialAccelX*dt;
 				if (ySpeed > 0) {
-					ySpeed -= partialAccel*dt;
+					ySpeed -= partialAccelY*dt;
 					if (ySpeed < 0) {
 						ySpeed = 0;
 					}
 				}
 				else if (ySpeed < 0) {
-					ySpeed += partialAccel*dt;
+					ySpeed += partialAccelY*dt;
 					if (ySpeed > 0) {
 						ySpeed = 0;
 					}
 				}
 				else {
-					xSpeed -= partialAccel*dt;
+					xSpeed -= (accel-partialAccelX)*dt;
 					if (xSpeed < 0) {
 						xSpeed = 0;
 					}
 				}
 			}
 			else if (xSpeed < 0) {
-				xSpeed += partialAccel*dt;
+				xSpeed += partialAccelX*dt;
 				if (xSpeed > 0) {
 					xSpeed = 0;
 				}
 				if (ySpeed > 0) {
-					ySpeed -= partialAccel*dt;
+					ySpeed -= partialAccelY*dt;
 					if (ySpeed < 0) {
 						ySpeed = 0;
 					}
 				}
 				else if (ySpeed < 0) {
-					ySpeed += partialAccel*dt;
+					ySpeed += partialAccelY*dt;
 					if (ySpeed > 0) {
 						ySpeed = 0;
 					}
 				}
 				else {
-					xSpeed += partialAccel*dt;
+					xSpeed += (accel-partialAccelX)*dt;
 					if (xSpeed > 0) {
 						xSpeed = 0;
 					}
@@ -193,6 +235,7 @@ public class Character {
 				//if moving down
 				else {
 					tempY += accel*dt;
+					shipAngle = 0;
 				}
 			}
 			//if moving left
@@ -228,7 +271,12 @@ public class Character {
 	}
 	
 	//Draws the sprite to the screen based on its current frame
+	//Graphic operations are allowed
 	public void Draw() {
+		if (shipSprite == null || turretSprite == null) {
+			shipSprite = new Sprite(shipString);
+			turretSprite = new Sprite(turretString);
+		}
 		if (visible) {
 			updateSprite();
 		}
@@ -255,13 +303,13 @@ public class Character {
 	}
 	
 	//Get Character Name
-	public String getName() {
-		return name;
+	public int getID() {
+		return id;
 	}
 	
 	//Set Character name
-	public void setName(String name) {
-		this.name = name;
+	public void setID(String name) {
+		this.id = id;
 	}
 	
 	//Get Acceleration
@@ -291,10 +339,22 @@ public class Character {
 	
 	//returns a string representation of the character
 	public String toString() {
-		return Integer.toString((int)x) + " " + Integer.toString((int)y) + " " + getName();
+		String reVal;
+		if (shipString == null || turretString == null) {
+			reVal = "ship " + Double.toString(x) + " " + Double.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height);
+			reVal += " " + Integer.toString(maxHealth) + " " + maxMovement + " " + Double.toString(shipAngle) + " " + Double.toString(turretAngle);
+			reVal += " " + Integer.toString(health) + " " +  shipSprite.toString() + " " + turretSprite.toString() + " " + animation + " " + Integer.toString(animTimer) + " " + this.getID();
+		}
+		else {
+			reVal = "ship " + Double.toString(x) + " " + Double.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height);
+			reVal += " " + Integer.toString(maxHealth) + " " + maxMovement + " " + Double.toString(shipAngle) + " " + Double.toString(turretAngle);
+			reVal += " " + Integer.toString(health) + " " +  shipString + " " + turretString + " " + animation + " " + Integer.toString(animTimer) + " " + this.getID();
+		}
+		return reVal;
 	}
 	
 	//draws the character's healthbar above the character
+	//graphic operations are allowed
 	public void drawHealthBar() {
 		int baseX = (int)(x+2);
 		int baseY = (int)(y-8);
@@ -302,10 +362,10 @@ public class Character {
 		DrawQuadTex(baseX, baseY, ((float)health/(float)maxHealth)*(width-4), 4, LoadPNG("healthBar"));
 	}
 	
-	//removes the ship from the server's list of ships to update, as well as giving player a new ship.
+	//removes the ship from the client's list of ships to update, as well as giving player a new ship.
 	//Garbage collects the current object **
 	public void die() {
-		ArrayList<Character> chars = server.getCharacters();
+		ArrayList<Character> chars = client.getCharacters();
 		for (Character i : chars) {
 			if (i.equals(this)) {
 				chars.remove(i);
@@ -315,6 +375,7 @@ public class Character {
 	}
 	
 	//changes the texture of the sprite based on the current frame
+	//graphic operations are allowed
 	protected void updateSprite() {
 		DrawQuadTexRot((int)x, (int)y, width, height, (int)shipAngle, shipSprite.updateTex());
 		DrawQuadTexRot((int)x+width/4, (int)y+height/4, width/2, height/2, (int)turretAngle, turretSprite.updateTex());
