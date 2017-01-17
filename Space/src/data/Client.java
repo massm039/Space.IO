@@ -155,7 +155,7 @@ public class Client extends Thread{
 			}
 			break;
 		case "remove":
-			System.out.println(data);
+			//System.out.println(data);
 			switch (datapoints[1]) {
 			case "character":
 				Character toRemove = null;
@@ -181,7 +181,7 @@ public class Client extends Thread{
 						}
 					}
 					if (toBeRemoved != null) {
-						System.out.println("successfully removed");
+						//System.out.println("successfully removed");
 						remove(toBeRemoved);
 					}
 				}
@@ -189,6 +189,19 @@ public class Client extends Thread{
 			}
 			break;
 		}
+	}
+	
+	//sends a removal message to the server to update client based Collidables that ran out of lifetime
+	public void sendRemovalMessage(Collidable i) {
+		//System.out.println("removal message");
+		String message = "remove ";
+		if (i instanceof Item) {
+			message += "item " + ((Item) i).getID();
+		}
+		else if (i instanceof Character) {
+			message += "character " + ((Character) i).getID();
+		}
+		sendData(message);
 	}
 	
 	//Sends data on an object to the server process

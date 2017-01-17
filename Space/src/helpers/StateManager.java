@@ -25,9 +25,9 @@ public class StateManager {
 			break;
 		case GAME:
 			if (game == null) {
-				Client server = connectServer();
+				Client client = connectServer();
 				mainMenu = null;
-				game = new Game(server);
+				game = new Game(client);
 			}
 			game.update();
 			break;

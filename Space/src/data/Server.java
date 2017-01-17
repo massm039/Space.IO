@@ -68,7 +68,8 @@ public class Server extends Thread{
 	public synchronized void  handleData(String data) {
 		//System.out.println(data);
 		String[] datapoints = data.split(" ");
-		if (datapoints[0].equals("ship")) {
+		switch (datapoints[0]) {
+		case "ship":
 			Character dataChar = new Character(data, null, null);
 			synchronized (characters) {
 				Character toBeRemoved = null;
@@ -84,8 +85,8 @@ public class Server extends Thread{
 				}
 				characters.add(dataChar);
 			}
-		}
-		else if (datapoints[0].equals("item")) {
+		break;
+		case "item":
 			Item dataItem =  new Item(data, null);
 			//System.out.println("ITEM: makes it to the for loop");
 			Item toBeRemoved = null;
@@ -101,6 +102,41 @@ public class Server extends Thread{
 				}
 				items.add(dataItem);
 			}
+		break;
+		case "remove":
+			System.out.println(data);
+			switch (datapoints[1]) {
+			case "character":
+				Character toRemove = null;
+				synchronized(characters) {
+					for (Character i : characters) {
+						if (i.getID() == Integer.parseInt(datapoints[2])) {
+							toRemove = i;
+							break;
+						}
+					}
+					if (toRemove != null) {
+						characters.remove(toRemove);
+					}
+				}
+				break;
+			case "item":
+				synchronized(items) {
+					Item itemToBeRemoved = null;
+					for (Item i : items) {
+						if (i.getID() == Integer.parseInt(datapoints[2])) {
+							itemToBeRemoved = i;
+							break;
+						}
+					}
+					if (itemToBeRemoved != null) {
+						System.out.println("successfully removed");
+						items.remove(itemToBeRemoved);
+					}
+				}
+				break;
+			}
+		break;
 		}
 	}
 	
@@ -158,6 +194,9 @@ public class Server extends Thread{
 				sendRemovalMessage(i);
 				items.remove(i);
 				numAsteroids--;
+			}
+			for (Item i : items) {
+				System.out.println(i.name + " " + i.getID());
 			}
 		}
 	}
@@ -224,6 +263,23 @@ public class Server extends Thread{
 		}
 	}
 	
+	//simulates a client in order to view the server's current state
+	private void drawAll() {
+		System.out.println("drawing?");
+		//Draws all of the client's Items
+		synchronized(items) {
+			for (Item i : items) {
+				i.Draw();
+			}
+		}
+		//Draws all of the client's characters
+		synchronized(characters) {
+			for (Character c : characters) {
+				c.Draw();
+			}
+		}
+	}
+	
 	//run this to run the Server
 	public static void main (String args[]) {
 		Server server = new Server();
@@ -239,6 +295,9 @@ public class Server extends Thread{
 				server.updateServerItems();
 				server.checkCollisions();
 				Thread.sleep(100);
+				
+				//server.drawAll();
+				
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

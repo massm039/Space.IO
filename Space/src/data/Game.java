@@ -36,15 +36,21 @@ public class Game {
 		ArrayList<Item> toBeRemoved = new ArrayList<Item>();
 		synchronized (items) {
 			for (Item i : items) {
-				//System.out.println(i.update());
-				if (i.update()) {
-					i.Draw();
+				if (i.getOwnerID() == player.getCharacter().getID()) {
+					if (i.update()) {
+						i.Draw();
+					}
+					else {
+						toBeRemoved.add(i);
+					}
 				}
 				else {
-					toBeRemoved.add(i);
+					i.update();
+					i.Draw();
 				}
 			}
 			for (Item i : toBeRemoved) {
+				client.sendRemovalMessage(i);
 				items.remove(i);
 			}
 		}
@@ -60,6 +66,8 @@ public class Game {
 				i.Draw();
 			}
 		}
+		
+		//TODO: client.drawHealthBars();
 	
 	}
 
