@@ -1,23 +1,19 @@
 package data;
 
-import java.util.ArrayList;
-
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import static helpers.Artist.*;
 import static helpers.Clock.*;
 
-public class Character {
-	protected double x, y;
-	protected int width, height, maxHealth, maxMovement, damage = 10, range;
+public class Character extends Collidable{
+	protected int maxHealth, maxMovement, collisionDamage, range;
 	protected Sprite turretSprite, shipSprite;
 	protected String turretString, shipString;
 	protected Player player;
 	protected Client client;
 	protected int id;
-	protected boolean visible = true;
+	protected boolean visible, dead;
 	
-	protected String animation = "";
 	protected int animTimer;
 	protected int health;
 	protected double accel, xSpeed, ySpeed;
@@ -41,6 +37,9 @@ public class Character {
 		this.turretSprite = new Sprite("turret", 1);
 		this.shipSprite = new Sprite("ship", 1);
 		id = (int)(Math.random()*10000);
+		collisionDamage = 10;
+		visible = true;
+		dead = false;
 	}
 	
 	//Character constructor for a new ship
@@ -59,13 +58,17 @@ public class Character {
 		xSpeed = 0;
 		ySpeed = 0;
 		id = (int)(Math.random()*10000);
+		collisionDamage = 10;
+		visible = true;
+		dead = false;
 	}
 	
 	//takes a Character.toString() and constructs an identical Character in the new client.
 	public Character(String data, Player player, Client client) {
 		String[] datapoints = data.split(" ");
-		if (datapoints.length != 15) {
-			System.out.println( "Provided String is not of desired structure in Character(String data)");
+		if (datapoints.length != 17) {
+			System.out.println( "Provided String is not of desired structure in Character(String data): ");
+			System.out.println(data);
 		}
 		else {
 			x = Double.parseDouble(datapoints[1]);
@@ -82,13 +85,14 @@ public class Character {
 			//shipSprite = new Sprite(datapoints[10]);
 			turretString = datapoints[11];
 			//turretSprite = new Sprite(datapoints[11]);
-			animation = datapoints[12];
-			animTimer = Integer.parseInt(datapoints[13]);
-			id = Integer.parseInt(datapoints[14]);
+			animTimer = Integer.parseInt(datapoints[12]);
+			id = Integer.parseInt(datapoints[13]);
+			collisionDamage = Integer.parseInt(datapoints[14]);
+			visible = Boolean.parseBoolean(datapoints[15]);
+			dead = Boolean.parseBoolean(datapoints[16]);
 			this.player = player;
 			this.client = client;
 		}
-		
 	}
 
 	//Called on every iteration of the player's program on the player's ship.
@@ -105,6 +109,15 @@ public class Character {
 		double dt = Delta();
 		x += xSpeed*dt;
 		y += ySpeed*dt;
+	}
+	
+	public double getMovementDirection() {
+		//set the image angle to be looking at the cursor
+		double moveDirection = Math.toDegrees(Math.atan((ySpeed/xSpeed*(-1))));
+		if (xSpeed >= 0) {
+			moveDirection += 180;
+		}
+		return moveDirection;
 	}
 	
 	//Directs the character in a direction based on the mouse's position relative to the player
@@ -320,6 +333,9 @@ public class Character {
 	
 	//Get current speed
 	public double getSpeed() {
+		if (xSpeed*xSpeed + ySpeed*ySpeed == 0) {
+			return 0;
+		}
 		return Math.pow(xSpeed*xSpeed + ySpeed*ySpeed, 1/2);
 	}
 	
@@ -338,18 +354,35 @@ public class Character {
 		health = newHealth;
 	}
 	
+	public int getCollisioncollisionDamage() {
+		return (int)(getSpeed()*collisionDamage);
+	}
+	
+	public void handleCollision(Collidable other) {
+		health -= other.getCollisionDamage();
+		System.out.println("damage delt: " +  other.getCollisionDamage());
+		System.out.println("health left: " + health);
+		if (health == 0) {
+			die();
+		}
+		xSpeed = 0;
+		ySpeed = 0;
+	}
+	
 	//returns a string representation of the character
 	public String toString() {
 		String reVal;
 		if (shipString == null || turretString == null) {
 			reVal = "ship " + Double.toString(x) + " " + Double.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height);
 			reVal += " " + Integer.toString(maxHealth) + " " + maxMovement + " " + Double.toString(shipAngle) + " " + Double.toString(turretAngle);
-			reVal += " " + Integer.toString(health) + " " +  shipSprite.toString() + " " + turretSprite.toString() + " " + animation + " " + Integer.toString(animTimer) + " " + this.getID();
+			reVal += " " + Integer.toString(health) + " " +  shipSprite.toString() + " " + turretSprite.toString() + " " + Integer.toString(animTimer) + " ";
+			reVal += this.getID() + " " + collisionDamage + " " + visible + " " + dead;
 		}
 		else {
 			reVal = "ship " + Double.toString(x) + " " + Double.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height);
 			reVal += " " + Integer.toString(maxHealth) + " " + maxMovement + " " + Double.toString(shipAngle) + " " + Double.toString(turretAngle);
-			reVal += " " + Integer.toString(health) + " " +  shipString + " " + turretString + " " + animation + " " + Integer.toString(animTimer) + " " + this.getID();
+			reVal += " " + Integer.toString(health) + " " +  shipString + " " + turretString + " " + Integer.toString(animTimer) + " ";
+			reVal += this.getID() + " " + collisionDamage + " " + visible + " " + dead;
 		}
 		return reVal;
 	}
@@ -366,13 +399,7 @@ public class Character {
 	//removes the ship from the client's list of ships to update, as well as giving player a new ship.
 	//Garbage collects the current object **
 	public void die() {
-		ArrayList<Character> chars = client.getCharacters();
-		for (Character i : chars) {
-			if (i.equals(this)) {
-				chars.remove(i);
-			}
-		}
-		player.respawn();
+		this.dead = true;
 	}
 	
 	//changes the texture of the sprite based on the current frame

@@ -2,6 +2,7 @@ package data;
 
 import java.util.ArrayList;
 import org.lwjgl.input.Mouse;
+import helpers.Artist;
 
 public class Player {
 	
@@ -25,13 +26,16 @@ public class Player {
 	
 	//Update the player's position based on inputs
 	public void update() {
-		//TODO: update direction facing !
 		if (Mouse.isButtonDown(0)) { //left click held -> shoot
 			activateItems(); //makes bullets based on the weapons in the character's inventory
 		}
 		
 		//update the ships location
 		ship.update();
+		
+		if (ship.dead) {
+			respawn();
+		}
 		
 		//send new data about the ship to the server
 		updateClient(ship);
@@ -58,8 +62,12 @@ public class Player {
 	
 	//Call when the current ship dies, respawning as a new character
 	public void respawn() {
-		//TODO: implement a random location algorithm based on the server size
-		ship = new Character(0, 0, 32, 32, 100, .5, 10, "ship", "turret", 1, this, client);
+		ship.health = ship.maxHealth;
+		ship.xSpeed = 0;
+		ship.ySpeed = 0;
+		ship.x = Math.random()*Artist.WIDTH;
+		ship.y = Math.random()*Artist.HEIGHT;
+		ship.dead = false;
 	}
 	
 	//gives the updated Character to the server to draw

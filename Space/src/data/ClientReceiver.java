@@ -16,7 +16,6 @@ public class ClientReceiver extends Thread{
 	//reads lines from the server and runs handleData from the client class on the received data
 	public void run() {
 		//read from server
-		String data;
 		try {
 			String message;
 			while ((message = br.readLine()) != null) {

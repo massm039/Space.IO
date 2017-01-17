@@ -31,7 +31,7 @@ public class ServerThread extends Thread {
 			//out.flush();
 			
 			while ((message = bufferedReader.readLine()) != null) {
-				handleData(message);
+				handleMessage(message);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -39,8 +39,9 @@ public class ServerThread extends Thread {
 	}
 	
 	//sends the data to the master class to be handled
-	private synchronized void handleData(String data) {
+	private synchronized void handleMessage(String data) {
 		//System.out.println("Handling Data");
+		master.handleData(data);
 		master.handleInput(data, this);
 	}
 	

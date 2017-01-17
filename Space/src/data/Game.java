@@ -33,15 +33,19 @@ public class Game {
 		
 		//Draws all of the client's Items
 		ArrayList<Item> items = client.getItems();
+		ArrayList<Item> toBeRemoved = new ArrayList<Item>();
 		synchronized (items) {
-			for (int i=0; i<items.size(); i++) {
-				if (items.get(i).update()) {
-					items.get(i).Draw();
+			for (Item i : items) {
+				//System.out.println(i.update());
+				if (i.update()) {
+					i.Draw();
 				}
 				else {
-					items.remove(i);
-					i--;
+					toBeRemoved.add(i);
 				}
+			}
+			for (Item i : toBeRemoved) {
+				items.remove(i);
 			}
 		}
 		
@@ -50,6 +54,7 @@ public class Game {
 		synchronized (characters) {
 			for (Character i : characters) {
 				if (i != player.getCharacter()) {
+					//System.out.println("calls move");
 					i.move();
 				}
 				i.Draw();
