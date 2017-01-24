@@ -1,6 +1,13 @@
 package data;
 
 import java.util.ArrayList;
+
+import org.lwjgl.opengl.Display;
+import org.newdawn.slick.opengl.Texture;
+
+import static helpers.Artist.DrawQuadTex;
+import static helpers.Artist.LoadPNG;
+
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -57,9 +64,11 @@ public class Server extends Thread{
 	
 	//Handles input send from a particular client. It sends it to all other clients.
 	public void handleInput(String data, ServerThread client) {
-		for (ServerThread i : threads) {
-			if (i != client) {
-				sendData(data, i);
+		synchronized(threads) {
+			for (ServerThread i : threads) {
+				if (i != client) {
+					sendData(data, i);
+				}
 			}
 		}
 	}
@@ -104,7 +113,7 @@ public class Server extends Thread{
 			}
 		break;
 		case "remove":
-			System.out.println(data);
+			//System.out.println(data);
 			switch (datapoints[1]) {
 			case "character":
 				Character toRemove = null;
@@ -130,7 +139,7 @@ public class Server extends Thread{
 						}
 					}
 					if (itemToBeRemoved != null) {
-						System.out.println("successfully removed");
+						//System.out.println("successfully removed");
 						items.remove(itemToBeRemoved);
 					}
 				}
@@ -180,23 +189,20 @@ public class Server extends Thread{
 		ArrayList<Item> toBeRemoved = new ArrayList<Item>();
 		synchronized(items) {
 			for (Item i : items) {
-				if (i.getOwnerID() == 0) {
-					if (i.update()) {
-						broadcast(i.toString());
-					}
-					else {
-						//System.out.println("removing");
-						toBeRemoved.add(i);
-					}
+				if (i.update()) {
+					broadcast(i.toString());
+				}
+				else {
+					//System.out.println("removing");
+					toBeRemoved.add(i);
 				}
 			}
-			for (Item i : toBeRemoved) {
+		}
+		for (Item i : toBeRemoved) {
+			items.remove(i);
+			if (i.name.equals("Asteroid")) {
 				sendRemovalMessage(i);
-				items.remove(i);
 				numAsteroids--;
-			}
-			for (Item i : items) {
-				System.out.println(i.name + " " + i.getID());
 			}
 		}
 	}
@@ -226,9 +232,12 @@ public class Server extends Thread{
 				for (Item item : items) {
 					for (Character j : characters) {
 						if (item.collision(j) && item.getOwnerID() != j.getID()) {
+							//System.out.println(item.getID() + " :: " + j.getID());
+							collisionMessage(j, item);
 							collisionMessage(item, j);
 							if (item.getOwnerID() == 0) {
-								item.handleCollision(j);
+								j.handleCollision(item.getCollisionDamage());
+								item.handleCollision(j.getCollisionDamage());
 							}
 						}
 					}
@@ -236,10 +245,10 @@ public class Server extends Thread{
 						if (item.collision(j) && item.getID() != j.getID()) {
 							collisionMessage(item, j);
 							if (item.getOwnerID() == 0) {
-								item.handleCollision(j);
+								item.handleCollision(j.getCollisionDamage());
 							}
 							if (j.getOwnerID() == 0) {
-								j.handleCollision(item);
+								j.handleCollision(item.getCollisionDamage());
 							}
 						}
 					}
@@ -250,14 +259,6 @@ public class Server extends Thread{
 							collisionMessage(i, j);
 						}
 					}
-					for (Item j : items) {
-						if (i.collision(j) && i.getID() != j.getOwnerID()) {
-							collisionMessage(i, j);
-							if (j.getOwnerID() == 0) {
-								j.handleCollision(i);
-							}
-						}
-					}
 				}
 			}
 		}
@@ -265,7 +266,7 @@ public class Server extends Thread{
 	
 	//simulates a client in order to view the server's current state
 	private void drawAll() {
-		System.out.println("drawing?");
+		//System.out.println("drawing?");
 		//Draws all of the client's Items
 		synchronized(items) {
 			for (Item i : items) {
@@ -285,20 +286,34 @@ public class Server extends Thread{
 		Server server = new Server();
 		Clock.update();
 		try {
+			//server preparing
 			server.serverSocket = new ServerSocket(PORT);
 			server.start();
+			
+			//Display creation
 			Artist.BeginSession();
-			while (true) {
+			
+			
+			while (!Display.isCloseRequested()) {
 				Clock.update();
 				server.tryGenerateAsteroids();
 				//server.tryGeneratePowerups(); //(TODO: maybe do this?)
 				server.updateServerItems();
 				server.checkCollisions();
-				Thread.sleep(100);
 				
-				//server.drawAll();
+				Thread.sleep(5);
 				
+				/*
+				//Display/Drawing
+				Texture background = LoadPNG("background");
+				DrawQuadTex(0, 0, 2048, 1024, background);
+				server.drawAll();
+				Display.update();
+				*/
 			}
+			
+			Display.destroy();
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -24,18 +24,20 @@ public class Player {
 		return ship;
 	}
 	
+	//Set method for hte player's ship object
+	public void setCharacter(Character ship) {
+		this.ship = ship;
+	}
+	
 	//Update the player's position based on inputs
 	public void update() {
+		updateInventory(); //controls cooldowns of all inventory items;
 		if (Mouse.isButtonDown(0)) { //left click held -> shoot
 			activateItems(); //makes bullets based on the weapons in the character's inventory
 		}
 		
 		//update the ships location
 		ship.update();
-		
-		if (ship.dead) {
-			respawn();
-		}
 		
 		//send new data about the ship to the server
 		updateClient(ship);
@@ -45,6 +47,12 @@ public class Player {
 	public void addToInventory(InventoryItem item) {
 		if (!inventory.contains(item)) {
 			inventory.add(item);
+		}
+	}
+	
+	public void updateInventory() {
+		for (InventoryItem i: inventory) {
+			i.update();
 		}
 	}
 	
@@ -58,16 +66,6 @@ public class Player {
 	//Adds an item to the inventory (guns ect)
 	public void addItem(InventoryItem item) {
 		inventory.add(item);
-	}
-	
-	//Call when the current ship dies, respawning as a new character
-	public void respawn() {
-		ship.health = ship.maxHealth;
-		ship.xSpeed = 0;
-		ship.ySpeed = 0;
-		ship.x = Math.random()*Artist.WIDTH;
-		ship.y = Math.random()*Artist.HEIGHT;
-		ship.dead = false;
 	}
 	
 	//gives the updated Character to the server to draw

@@ -127,12 +127,13 @@ public class Client extends Thread{
 				switch (colliderTwoData[0]) {
 				case "ship":
 					Character dataCharacterTwo = new Character(datapoints[2], player, this);
-					dataCharacterOne.handleCollision(dataCharacterTwo);
+					dataCharacterOne.handleCollision(dataCharacterTwo.getCollisionDamage());
 					update(dataCharacterOne);
 					break;
 				case "item":
 					Item dataItemTwo = new Item(datapoints[2], this);
-					dataCharacterOne.handleCollision(dataItemTwo);
+					//System.out.println(dataItemTwo.getOwnerID());
+					dataCharacterOne.handleCollision(dataItemTwo.getCollisionDamage());
 					update(dataCharacterOne);
 					break;
 				}
@@ -142,12 +143,12 @@ public class Client extends Thread{
 				switch (colliderTwoData[0]) {
 				case "ship":
 					Character dataCharacterTwo = new Character(datapoints[2], player, this);
-					dataItemOne.handleCollision(dataCharacterTwo);
+					dataItemOne.handleCollision(dataCharacterTwo.getCollisionDamage());
 					update(dataItemOne);
 					break;
 				case "item":
 					Item dataItemTwo = new Item(datapoints[2], this);
-					dataItemOne.handleCollision(dataItemTwo);
+					dataItemOne.handleCollision(dataItemTwo.getCollisionDamage());
 					update(dataItemOne);
 					break;
 				}
@@ -167,7 +168,9 @@ public class Client extends Thread{
 						}
 					}
 					if (toRemove != null) {
-						remove(toRemove);
+						if (toRemove.getID() != player.getCharacter().getID()) {
+							remove(toRemove);
+						}
 					}
 				}
 				break;
@@ -262,6 +265,11 @@ public class Client extends Thread{
 				}
 				if (toBeRemoved != null) {
 					characters.add((Character) i);
+					if (player.getCharacter().getID() == toBeRemoved.getID()) {
+						i.x = player.getCharacter().x;
+						i.y = player.getCharacter().y;
+						player.setCharacter((Character) i);
+					}
 					characters.remove(toBeRemoved);
 				}
 			}
@@ -286,6 +294,9 @@ public class Client extends Thread{
 	private void update(Collidable i, Collidable j) {
 		if (i instanceof Character && j instanceof Character) {
 			characters.remove((Character)i);
+			if (player.getCharacter().getID() == ((Character) j).getID()) {
+				player.setCharacter((Character) i);
+			}
 			characters.add((Character)j);
 		}
 		if (i instanceof Item && j instanceof Item) {

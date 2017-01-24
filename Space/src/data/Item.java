@@ -228,7 +228,7 @@ public class Item extends Collidable {
 		return false;
 	}
 	
-	public void handleCollision(Collidable other) {
+	public void handleCollision(int damage) {
 		switch(name) {
 		case "Bullet":
 			destroy();
@@ -237,7 +237,7 @@ public class Item extends Collidable {
 			destroy();
 			break;
 		case "Asteroid":
-			health -= other.getCollisionDamage();
+			health -= damage;
 			if (health <= 0) {
 				destroy();
 			}

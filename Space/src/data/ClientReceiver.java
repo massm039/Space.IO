@@ -21,8 +21,8 @@ public class ClientReceiver extends Thread{
 			while ((message = br.readLine()) != null) {
 				client.handleData(message);
 				//System.out.println(message);
+				//Thread.sleep(1);
 			}
-			Thread.sleep(100);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

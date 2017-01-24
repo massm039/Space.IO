@@ -2,11 +2,14 @@ package data;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+
+import helpers.Artist;
+
 import static helpers.Artist.*;
 import static helpers.Clock.*;
 
 public class Character extends Collidable{
-	protected int maxHealth, maxMovement, collisionDamage, range;
+	protected int maxHealth, maxMovement, range;
 	protected Sprite turretSprite, shipSprite;
 	protected String turretString, shipString;
 	protected Player player;
@@ -29,7 +32,7 @@ public class Character extends Collidable{
 		width = 64;
 		height = 64;
 		maxHealth = 100;
-		health = maxHealth;
+		health = 100;
 		xSpeed = 0;
 		ySpeed = 0;
 		accel = .3;
@@ -49,7 +52,7 @@ public class Character extends Collidable{
 		this.width = width;
 		this.height = height;
 		this.maxHealth = maxHealth;
-		this.health = maxHealth;
+		this.health = 100;
 		this.accel = accel;
 		this.maxMovement = maxMovement;
 		this.animTimer = animLength;
@@ -66,7 +69,7 @@ public class Character extends Collidable{
 	//takes a Character.toString() and constructs an identical Character in the new client.
 	public Character(String data, Player player, Client client) {
 		String[] datapoints = data.split(" ");
-		if (datapoints.length != 17) {
+		if (datapoints.length != 18) {
 			System.out.println( "Provided String is not of desired structure in Character(String data): ");
 			System.out.println(data);
 		}
@@ -90,6 +93,7 @@ public class Character extends Collidable{
 			collisionDamage = Integer.parseInt(datapoints[14]);
 			visible = Boolean.parseBoolean(datapoints[15]);
 			dead = Boolean.parseBoolean(datapoints[16]);
+			accel = Double.parseDouble(datapoints[17]);
 			this.player = player;
 			this.client = client;
 		}
@@ -103,6 +107,10 @@ public class Character extends Collidable{
 		updateSpeed();
 		
 		move();
+		
+		if (dead) {
+			respawn();
+		}
 	}
 	
 	public void move() {
@@ -146,8 +154,8 @@ public class Character extends Collidable{
 		double tempX = xSpeed;
 		double tempY = ySpeed;
 		double dt = Delta();
-		double xPercent = Math.abs(xSpeed)/Math.abs(xSpeed)+Math.abs(ySpeed);
-		double yPercent = Math.abs(ySpeed)/Math.abs(xSpeed)+Math.abs(ySpeed);
+		double xPercent = Math.abs(xSpeed)/(Math.abs(xSpeed)+Math.abs(ySpeed));
+		double yPercent = Math.abs(ySpeed)/(Math.abs(xSpeed)+Math.abs(ySpeed));
 		double partialAccel = Math.pow(accel*accel/2, .5);
 		double partialAccelX = Math.pow(accel*accel/xPercent, .5);
 		double partialAccelY = Math.pow(accel*accel/yPercent, .5);
@@ -354,19 +362,13 @@ public class Character extends Collidable{
 		health = newHealth;
 	}
 	
-	public int getCollisioncollisionDamage() {
-		return (int)(getSpeed()*collisionDamage);
-	}
-	
-	public void handleCollision(Collidable other) {
-		health -= other.getCollisionDamage();
-		System.out.println("damage delt: " +  other.getCollisionDamage());
-		System.out.println("health left: " + health);
+	public void handleCollision(int damage) {
+		setHealth(health - damage);
+		//System.out.println("damage delt: " +  damage);
+		//System.out.println("health left: " + health);
 		if (health == 0) {
 			die();
 		}
-		xSpeed = 0;
-		ySpeed = 0;
 	}
 	
 	//returns a string representation of the character
@@ -376,13 +378,13 @@ public class Character extends Collidable{
 			reVal = "ship " + Double.toString(x) + " " + Double.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height);
 			reVal += " " + Integer.toString(maxHealth) + " " + maxMovement + " " + Double.toString(shipAngle) + " " + Double.toString(turretAngle);
 			reVal += " " + Integer.toString(health) + " " +  shipSprite.toString() + " " + turretSprite.toString() + " " + Integer.toString(animTimer) + " ";
-			reVal += this.getID() + " " + collisionDamage + " " + visible + " " + dead;
+			reVal += this.getID() + " " + collisionDamage + " " + visible + " " + dead + " " + accel;
 		}
 		else {
 			reVal = "ship " + Double.toString(x) + " " + Double.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height);
 			reVal += " " + Integer.toString(maxHealth) + " " + maxMovement + " " + Double.toString(shipAngle) + " " + Double.toString(turretAngle);
 			reVal += " " + Integer.toString(health) + " " +  shipString + " " + turretString + " " + Integer.toString(animTimer) + " ";
-			reVal += this.getID() + " " + collisionDamage + " " + visible + " " + dead;
+			reVal += this.getID() + " " + collisionDamage + " " + visible + " " + dead + " " + accel;
 		}
 		return reVal;
 	}
@@ -399,7 +401,18 @@ public class Character extends Collidable{
 	//removes the ship from the client's list of ships to update, as well as giving player a new ship.
 	//Garbage collects the current object **
 	public void die() {
-		this.dead = true;
+		dead = true;
+	}
+	
+	//Call when the current ship dies, respawning as a new character
+	public void respawn() {
+		//System.out.println("Respawning");
+		health = maxHealth;
+		xSpeed = 0;
+		ySpeed = 0;
+		x = Math.random()*Artist.WIDTH;
+		y = Math.random()*Artist.HEIGHT;
+		dead = false;
 	}
 	
 	//changes the texture of the sprite based on the current frame
