@@ -3,7 +3,7 @@ package data;
 public enum ItemType {
 	
 	//Asteroid has a single frame with no animation
-	Asteroid("Asteroid", 64, 64, "asteroid", 0, 100, 20),
+	Asteroid("Asteroid", 64, 64, "asteroid", 0, 50, 50),
 	//Pickup has 5 frames, and a rotation time of 3 units
 	Pickup("Pickup", 32, 32, "pickup", 0, 1000, 0, 5, 3),
 	//Other enumerated types

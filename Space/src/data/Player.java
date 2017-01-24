@@ -24,7 +24,7 @@ public class Player {
 		return ship;
 	}
 	
-	//Set method for hte player's ship object
+	//Set method for the player's ship object
 	public void setCharacter(Character ship) {
 		this.ship = ship;
 	}

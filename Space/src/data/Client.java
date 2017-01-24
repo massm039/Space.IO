@@ -127,13 +127,13 @@ public class Client extends Thread{
 				switch (colliderTwoData[0]) {
 				case "ship":
 					Character dataCharacterTwo = new Character(datapoints[2], player, this);
-					dataCharacterOne.handleCollision(dataCharacterTwo.getCollisionDamage());
+					dataCharacterOne.handleCollision(dataCharacterTwo.getCollisionDamage(), true);
 					update(dataCharacterOne);
 					break;
 				case "item":
 					Item dataItemTwo = new Item(datapoints[2], this);
 					//System.out.println(dataItemTwo.getOwnerID());
-					dataCharacterOne.handleCollision(dataItemTwo.getCollisionDamage());
+					dataCharacterOne.handleCollision(dataItemTwo.getCollisionDamage(), dataItemTwo.triggersCollisionCD());
 					update(dataCharacterOne);
 					break;
 				}
@@ -266,8 +266,10 @@ public class Client extends Thread{
 				if (toBeRemoved != null) {
 					characters.add((Character) i);
 					if (player.getCharacter().getID() == toBeRemoved.getID()) {
-						i.x = player.getCharacter().x;
-						i.y = player.getCharacter().y;
+						i.x = toBeRemoved.x;
+						i.y = toBeRemoved.y;
+						((Character)i).xSpeed = toBeRemoved.xSpeed;
+						((Character)i).ySpeed = toBeRemoved.ySpeed;
 						player.setCharacter((Character) i);
 					}
 					characters.remove(toBeRemoved);

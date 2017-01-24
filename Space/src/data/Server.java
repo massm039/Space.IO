@@ -236,7 +236,7 @@ public class Server extends Thread{
 							collisionMessage(j, item);
 							collisionMessage(item, j);
 							if (item.getOwnerID() == 0) {
-								j.handleCollision(item.getCollisionDamage());
+								j.handleCollision(item.getCollisionDamage(), item.triggersCollisionCD());
 								item.handleCollision(j.getCollisionDamage());
 							}
 						}

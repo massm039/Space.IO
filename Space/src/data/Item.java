@@ -228,6 +228,15 @@ public class Item extends Collidable {
 		return false;
 	}
 	
+	public boolean triggersCollisionCD() {
+		switch(name) {
+		case "Asteroid":
+			return true;
+		default:
+			return false;
+		}
+	}
+	
 	public void handleCollision(int damage) {
 		switch(name) {
 		case "Bullet":

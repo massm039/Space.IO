@@ -23,6 +23,8 @@ public class Character extends Collidable{
 	
 	private double shipAngle;
 	private double turretAngle;
+	private double collisionCooldown;
+	private double collisionTimer;
 	
 	//Default character constructor for a new ship
 	//TODO: update this, it would be very nice to have a decent default.
@@ -40,9 +42,11 @@ public class Character extends Collidable{
 		this.turretSprite = new Sprite("turret", 1);
 		this.shipSprite = new Sprite("ship", 1);
 		id = (int)(Math.random()*10000);
-		collisionDamage = 10;
+		collisionDamage = 50;
 		visible = true;
 		dead = false;
+		collisionCooldown = 10;
+		collisionTimer = 10;
 	}
 	
 	//Character constructor for a new ship
@@ -61,15 +65,17 @@ public class Character extends Collidable{
 		xSpeed = 0;
 		ySpeed = 0;
 		id = (int)(Math.random()*10000);
-		collisionDamage = 10;
+		collisionDamage = 50;
 		visible = true;
 		dead = false;
+		collisionCooldown = 10;
+		collisionTimer = 10;
 	}
 	
 	//takes a Character.toString() and constructs an identical Character in the new client.
 	public Character(String data, Player player, Client client) {
 		String[] datapoints = data.split(" ");
-		if (datapoints.length != 18) {
+		if (datapoints.length != 19) {
 			System.out.println( "Provided String is not of desired structure in Character(String data): ");
 			System.out.println(data);
 		}
@@ -94,9 +100,11 @@ public class Character extends Collidable{
 			visible = Boolean.parseBoolean(datapoints[15]);
 			dead = Boolean.parseBoolean(datapoints[16]);
 			accel = Double.parseDouble(datapoints[17]);
+			collisionTimer = Double.parseDouble(datapoints[18]);
 			this.player = player;
 			this.client = client;
 		}
+		collisionCooldown = 10;
 	}
 
 	//Called on every iteration of the player's program on the player's ship.
@@ -107,6 +115,8 @@ public class Character extends Collidable{
 		updateSpeed();
 		
 		move();
+		
+		collisionTimer += Delta();
 		
 		if (dead) {
 			respawn();
@@ -362,12 +372,17 @@ public class Character extends Collidable{
 		health = newHealth;
 	}
 	
-	public void handleCollision(int damage) {
-		setHealth(health - damage);
-		//System.out.println("damage delt: " +  damage);
-		//System.out.println("health left: " + health);
-		if (health == 0) {
-			die();
+	public void handleCollision(int damage, boolean resetTimer) {
+		if (collisionTimer >= collisionCooldown) {
+			setHealth(health - damage);
+			if (resetTimer) {
+				collisionTimer = 0;
+			}
+			//System.out.println("damage delt: " +  damage);
+			//System.out.println("health left: " + health);
+			if (health == 0) {
+				die();
+			}
 		}
 	}
 	
@@ -378,13 +393,13 @@ public class Character extends Collidable{
 			reVal = "ship " + Double.toString(x) + " " + Double.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height);
 			reVal += " " + Integer.toString(maxHealth) + " " + maxMovement + " " + Double.toString(shipAngle) + " " + Double.toString(turretAngle);
 			reVal += " " + Integer.toString(health) + " " +  shipSprite.toString() + " " + turretSprite.toString() + " " + Integer.toString(animTimer) + " ";
-			reVal += this.getID() + " " + collisionDamage + " " + visible + " " + dead + " " + accel;
+			reVal += this.getID() + " " + collisionDamage + " " + visible + " " + dead + " " + accel + " " + collisionTimer;
 		}
 		else {
 			reVal = "ship " + Double.toString(x) + " " + Double.toString(y) + " " + Integer.toString(width) + " " + Integer.toString(height);
 			reVal += " " + Integer.toString(maxHealth) + " " + maxMovement + " " + Double.toString(shipAngle) + " " + Double.toString(turretAngle);
 			reVal += " " + Integer.toString(health) + " " +  shipString + " " + turretString + " " + Integer.toString(animTimer) + " ";
-			reVal += this.getID() + " " + collisionDamage + " " + visible + " " + dead + " " + accel;
+			reVal += this.getID() + " " + collisionDamage + " " + visible + " " + dead + " " + accel + " " + collisionTimer;
 		}
 		return reVal;
 	}
